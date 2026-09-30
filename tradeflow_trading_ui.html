@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeFlow — Trading Dashboard</title>
+<style>
+  :root{
+    --bg:#080b12; --panel:#0f141d; --panel2:#121923; --line:#202936;
+    --text:#eef3f8; --muted:#8b97a8; --green:#20c997; --red:#ff5c68;
+    --blue:#5b8cff; --yellow:#f6c453;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+  button,input{font:inherit}
+  .app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+  aside{border-right:1px solid var(--line);background:#0a0e15;padding:22px 14px;display:flex;flex-direction:column}
+  .brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;padding:4px 10px 28px}
+  .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#5b8cff,#20c997);display:grid;place-items:center;color:#061018;font-weight:900}
+  .nav{display:grid;gap:7px}
+  .nav button{border:0;background:transparent;color:var(--muted);padding:12px;border-radius:10px;text-align:left;cursor:pointer}
+  .nav button:hover,.nav button.active{background:#151c27;color:#fff}
+  .account{margin-top:auto;border:1px solid var(--line);border-radius:14px;padding:14px;background:#0d131c}
+  .avatar{width:34px;height:34px;border-radius:50%;background:#273246;display:grid;place-items:center;font-size:13px;font-weight:700}
+  .account-top{display:flex;align-items:center;gap:9px}
+  .small{font-size:12px;color:var(--muted)}
+  main{min-width:0}
+  header{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:#0a0e15}
+  .search{display:flex;align-items:center;gap:8px;background:#111721;border:1px solid var(--line);padding:9px 13px;border-radius:10px;width:300px}
+  .search input{background:transparent;border:0;outline:0;color:white;width:100%}
+  .header-actions{display:flex;align-items:center;gap:10px}
+  .icon-btn{width:38px;height:38px;border:1px solid var(--line);background:#111721;color:#b6c0cf;border-radius:10px;cursor:pointer}
+  .deposit{border:0;background:var(--green);color:#04120d;padding:10px 15px;border-radius:9px;font-weight:800;cursor:pointer}
+  .content{padding:22px;max-width:1500px;margin:auto}
+  .topline{display:flex;justify-content:space-between;align-items:end;margin-bottom:18px}
+  h1{margin:0;font-size:24px}.sub{color:var(--muted);font-size:13px;margin-top:5px}
+  .range{display:flex;gap:5px}.range button{background:#111721;border:1px solid var(--line);color:var(--muted);padding:7px 10px;border-radius:7px;cursor:pointer}.range button.active{color:#fff;background:#1b2431}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}
+  .card-label{font-size:12px;color:var(--muted)}.card-value{font-size:21px;font-weight:800;margin:7px 0}
+  .up{color:var(--green)}.down{color:var(--red)}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 16px;border-bottom:1px solid var(--line)}
+  .panel-title{font-weight:750}.muted{color:var(--muted)}
+  .chart-wrap{height:420px;padding:10px 14px 0;position:relative}
+  canvas{width:100%;height:100%;display:block}
+  .order-tabs{display:flex;border-bottom:1px solid var(--line);padding:0 15px}
+  .order-tabs button{border:0;background:transparent;color:var(--muted);padding:12px 13px;cursor:pointer}
+  .order-tabs button.active{color:#fff;border-bottom:2px solid var(--blue)}
+  .order-body{padding:16px}
+  .toggle{display:grid;grid-template-columns:1fr 1fr;background:#0a0f16;padding:4px;border-radius:9px;margin-bottom:14px}
+  .toggle button{border:0;background:transparent;color:var(--muted);padding:9px;border-radius:7px;cursor:pointer}.toggle .active{background:#182230;color:#fff}
+  label{font-size:12px;color:var(--muted);display:block;margin:12px 0 6px}
+  .field{display:flex;background:#0b1017;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .field input{flex:1;background:transparent;border:0;outline:0;color:white;padding:11px}.field span{padding:11px;color:var(--muted);font-size:12px}
+  .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:7px}.quick button{border:1px solid var(--line);background:#111721;color:var(--muted);border-radius:6px;padding:6px;cursor:pointer}
+  .submit{width:100%;border:0;border-radius:9px;padding:12px;margin-top:15px;font-weight:800;cursor:pointer}
+  .buy{background:var(--green);color:#03130e}.sell{background:var(--red);color:#fff}
+  .watch{margin-top:16px}
+  .watch-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:12px 15px;border-bottom:1px solid #1b232e;cursor:pointer}
+  .watch-row:last-child{border-bottom:0}.symbol{font-weight:750}.price{font-variant-numeric:tabular-nums}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:var(--green);margin-right:6px}
+  .notice{padding:11px 15px;font-size:11px;color:#738094;border-top:1px solid var(--line)}
+  @media(max-width:1000px){.app{grid-template-columns:70px 1fr}aside{padding:15px 8px}.brand span,.nav button span,.account{display:none}.nav button{text-align:center}.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.search{width:220px}}
+  @media(max-width:650px){.app{display:block}aside{display:none}header{padding:0 12px}.content{padding:13px}.search{width:150px}.cards{grid-template-columns:1fr 1fr}.chart-wrap{height:320px}.topline{align-items:start;gap:10px}.range{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="brand"><div class="logo">T</div><span>TradeFlow</span></div>
+  <div class="nav">
+    <button class="active">▦ <span>Dashboard</span></button>
+    <button>⌁ <span>Markets</span></button>
+    <button>◷ <span>Orders</span></button>
+    <button>☆ <span>Watchlist</span></button>
+    <button>▤ <span>Portfolio</span></button>
+    <button>⚙ <span>Settings</span></button>
+  </div>
+  <div class="account">
+    <div class="account-top"><div class="avatar">BN</div><div><b>Demo Account</b><div class="small">Practice mode</div></div></div>
+  </div>
+</aside>
+
+<main>
+<header>
+  <div class="search">⌕ <input id="search" placeholder="Search markets..." /></div>
+  <div class="header-actions">
+    <button class="icon-btn" title="Notifications">♢</button>
+    <button class="icon-btn" title="Theme">◐</button>
+    <button class="deposit" id="deposit">+ Add funds</button>
+  </div>
+</header>
+
+<div class="content">
+  <div class="topline">
+    <div><h1>Trading dashboard</h1><div class="sub">Market overview · Demo data</div></div>
+    <div class="range">
+      <button>1H</button><button>4H</button><button class="active">1D</button><button>1W</button><button>1M</button>
+    </div>
+  </div>
+
+  <section class="cards">
+    <div class="card"><div class="card-label">Portfolio value</div><div class="card-value">$24,680.42</div><div class="small up">▲ 3.84% today</div></div>
+    <div class="card"><div class="card-label">Available balance</div><div class="card-value">$8,420.00</div><div class="small">No positions open</div></div>
+    <div class="card"><div class="card-label">Day P&L</div><div class="card-value up">+$912.36</div><div class="small up">+3.84%</div></div>
+    <div class="card"><div class="card-label">Buying power</div><div class="card-value">$16,840.00</div><div class="small">Demo account</div></div>
+  </section>
+
+  <div class="grid">
+    <div>
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">BTC / USD</div><div class="small"><span class="dot"></span>Market open</div></div><div style="text-align:right"><b id="price">$67,842.10</b><div class="small up" id="change">+2.41%</div></div></div>
+        <div class="chart-wrap"><canvas id="chart"></canvas></div>
+        <div class="notice">Illustrative market data for UI demonstration only. No real orders are placed.</div>
+      </section>
+
+      <section class="panel watch">
+        <div class="panel-head"><div class="panel-title">Watchlist</div><div class="small">5 assets</div></div>
+        <div id="watchlist">
+          <div class="watch-row" data-symbol="BTC/USD" data-price="67842.10"><div><span class="dot"></span><span class="symbol">BTC/USD</span><div class="small">Bitcoin</div></div><div class="price">$67,842.10</div><div class="up">+2.41%</div></div>
+          <div class="watch-row" data-symbol="ETH/USD" data-price="3841.72"><div><span class="dot"></span><span class="symbol">ETH/USD</span><div class="small">Ethereum</div></div><div class="price">$3,841.72</div><div class="up">+1.82%</div></div>
+          <div class="watch-row" data-symbol="SOL/USD" data-price="164.28"><div><span class="dot"></span><span class="symbol">SOL/USD</span><div class="small">Solana</div></div><div class="price">$164.28</div><div class="up">+4.16%</div></div>
+          <div class="watch-row" data-symbol="EUR/USD" data-price="1.1724"><div><span class="dot"></span><span class="symbol">EUR/USD</span><div class="small">Euro / US Dollar</div></div><div class="price">1.1724</div><div class="down">−0.24%</div></div>
+          <div class="watch-row" data-symbol="XAU/USD" data-price="2658.40"><div><span class="dot"></span><span class="symbol">XAU/USD</span><div class="small">Gold</div></div><div class="price">$2,658.40</div><div class="up">+0.67%</div></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title">Order ticket</div><span class="small">BTC/USD</span></div>
+      <div class="order-tabs"><button class="active">Market</button><button>Limit</button><button>Stop</button></div>
+      <div class="order-body">
+        <div class="toggle"><button id="buyTab" class="active">Buy</button><button id="sellTab">Sell</button></div>
+        <label>Amount</label>
+        <div class="field"><input id="amount" type="number" value="1000" min="1"><span>USD</span></div>
+        <div class="quick"><button data-val="100">$100</button><button data-val="500">$500</button><button data-val="1000">$1K</button><button data-val="5000">$5K</button></div>
+        <label>Estimated price</label>
+        <div class="field"><input id="estimate" value="67842.10" readonly><span>USD</span></div>
+        <label>Risk control</label>
+        <div class="field"><input placeholder="Optional stop-loss"><span>USD</span></div>
+        <button class="submit buy" id="orderBtn">Place demo buy order</button>
+        <div id="orderMsg" class="small" style="margin-top:10px;text-align:center"></div>
+      </div>
+    </section>
+  </div>
+</div>
+</main>
+</div>
+
+<script>
+const canvas=document.getElementById('chart'),ctx=canvas.getContext('2d');
+let data=[42,45,43,48,47,51,50,55,53,58,56,61,60,64,62,68,66,70,73,71,76,74,79,77,82,80,84,81,87,85,90,88,93,91,96,94,98,95,101,99,104,102,108,105,111,109,114,112];
+function draw(){
+  const dpr=devicePixelRatio||1, r=canvas.getBoundingClientRect();
+  canvas.width=r.width*dpr;canvas.height=r.height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const w=r.width,h=r.height,p={l:5,r:50,t:15,b:25};
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#1d2632';ctx.lineWidth=1;
+  for(let i=0;i<6;i++){let y=p.t+i*(h-p.t-p.b)/5;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(w-p.r,y);ctx.stroke()}
+  for(let i=0;i<7;i++){let x=p.l+i*(w-p.l-p.r)/6;ctx.beginPath();ctx.moveTo(x,p.t);ctx.lineTo(x,h-p.b);ctx.stroke()}
+  const min=Math.min(...data)-4,max=Math.max(...data)+4;
+  const pts=data.map((v,i)=>({x:p.l+i*(w-p.l-p.r)/(data.length-1),y:p.t+(max-v)/(max-min)*(h-p.t-p.b)}));
+  ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.lineTo(pts.at(-1).x,h-p.b);ctx.lineTo(pts[0].x,h-p.b);ctx.closePath();
+  ctx.fillStyle='rgba(32,201,151,.10)';ctx.fill();
+  ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.strokeStyle='#20c997';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#7f8b9c';ctx.font='11px system-ui';
+  for(let i=0;i<5;i++){let val=max-i*(max-min)/4,y=p.t+i*(h-p.t-p.b)/4;ctx.fillText('$'+Math.round(val*600+40000).toLocaleString(),w-45,y+4)}
+}
+window.addEventListener('resize',draw);draw();
+
+const buy=document.getElementById('buyTab'),sell=document.getElementById('sellTab'),btn=document.getElementById('orderBtn');
+function side(s){
+  buy.classList.toggle('active',s==='buy');sell.classList.toggle('active',s==='sell');
+  btn.className='submit '+(s==='buy'?'buy':'sell');
+  btn.textContent='Place demo '+s+' order';
+}
+buy.onclick=()=>side('buy');sell.onclick=()=>side('sell');
+document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>document.getElementById('amount').value=b.dataset.val);
+btn.onclick=()=>{
+  const amount=document.getElementById('amount').value;
+  document.getElementById('orderMsg').textContent=`Demo order prepared for $${Number(amount).toLocaleString()}. No real trade was submitted.`;
+  document.getElementById('orderMsg').style.color=buy.classList.contains('active')?'#20c997':'#ff5c68';
+};
+document.querySelectorAll('.watch-row').forEach(row=>row.onclick=()=>{
+  const symbol=row.dataset.symbol, price=row.dataset.price;
+  document.querySelector('.panel-title').textContent=symbol;
+  document.getElementById('price').textContent=symbol.includes('EUR')?price:'$'+Number(price).toLocaleString(undefined,{minimumFractionDigits:2});
+  document.getElementById('estimate').value=price;
+});
+document.getElementById('deposit').onclick=()=>alert('Demo UI: connect this button to your real payment/deposit flow.');
+document.getElementById('search').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase();
+  document.querySelectorAll('.watch-row').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'grid':'none');
+});
+</script>
+</body>
+</html>
